@@ -1,5 +1,5 @@
 
-#========  P value/ Beta
+#========  P value
 
 cutoff = function(x, upper = 1, lower = 0.001, sig = 2, return.num = FALSE, 
                   lead.zero = FALSE, equal.sign = TRUE) {
