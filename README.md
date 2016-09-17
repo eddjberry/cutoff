@@ -1,4 +1,4 @@
-# A useful function for R Markdown
+# A function for rounding values in R Markdown
 
 In R Markdown one is often faced with situations where a value that can vary substantially is automatically pulled out. For example, we might want to pull a p-value out of an linear model object. It's a chore to have to manually edit p-values
 so that they conform with reporting conventions (e.g. p < .001).
