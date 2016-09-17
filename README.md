@@ -25,15 +25,15 @@ By default the upper cut-off is set to 1 meaning it isn't used for a *p*-value a
 
 The `equal.sign` argue might be useful when using the function in a table. This would give you ".16" instead of "= .16" for, say, a *p* value in a table but the "< .001"s would stay.
 
-The file `cutoff.R` contains different version of the function with defaults for different statistics. These could, of course, be replicated by simply changing the upper and lower arguments. However, it might be easier to have a different versions of the function for each type of statistic specified at the top of a R Markdown file. The default arguments of the different version are summarised below.
+The file `cutoff.R` contains different version of the function with defaults for different statistics. These could, of course, be replicated by simply changing the upper and lower arguments. However, it might be easier to have a different versions of the function for each type of statistic specified at the top of a R Markdown file. The default arguments of the different version are summarised below. `cutoff2` uses round() rather than signif() so that it's suited to large values with decimal places, such as percentages. The defaults are set up to round percentage so they have one decimal place, e.g. 57.8%. `cutoff_BF` has both `dp` and `sig` arguments for values above and below 1 respectively. The defaults allow you to round values greater than 1 to one decimal place while values less than 1 are have two significant figures. 
 
 | Function name | upper | lower | sig / dp | return.num | lead.zero | equal.sign | Notes |
 |---------------|-------|-------|-----|------------|-----------|------------|-------|
 | cutoff |  1 | 0.001 | 2 | FALSE | FALSE | TRUE | |
-| cutoff2 | 100 | 0.01 | 2 |FALSE | TRUE | TRUE | Uses round() not signif() |
-| cutoff_BF | 100 | 0.01 | 1 | FALSE | TRUE | TRUE | dp arg rather than sig |
 | cutoff_Rsq | 1 | 0.01 | 2 | FALSE | FALSE | TRUE | |
 | cutoff_beta | 1 | 0.001 | 2 | FALSE | TRUE | TRUE | |
+| cutoff2 | 100 | 0.01 | 2 |FALSE | TRUE | TRUE | Uses round() not signif() |
+| cutoff_BF | 100 | 0.01 | 2 / 1 | FALSE | TRUE | TRUE | dp arg rather than sig |
 
 
 All the function are vectorised so can be applied to a column of values.
@@ -41,37 +41,43 @@ All the function are vectorised so can be applied to a column of values.
 *If this function looks a bit loop heavy for R then my only defence is I was doing a lot of Python at the time.*
 
 ```
-#========  P value/ Beta
+#==============================================================================
+# Standard version: uses signif(), defaults for p-values
+#==============================================================================
 
-cutoff = function(x, upper = 1, lower = 0.001, sig = 2, return.num = FALSE,
+cutoff = function(x, upper = 1, lower = 0.001, sig = 2, return.num = FALSE, 
                   lead.zero = FALSE, equal.sign = TRUE) {
   y = NULL
   z = NULL
-
+  
   if (lead.zero == FALSE) {
     s = 2
   } else {
     s = 1
   }
-
+  
   for(i in seq_along(x)) {
     if(abs(x[i]) < lower) {
       y[i] = paste("<", substring(as.character(lower), s), sep = " ") # substring of a character used to get .001 rather than 0.001
       z[i] = substring(as.character(lower), s)
-
-    } else if(abs(x[i]) > upper) {
+      
+    } else if(abs(x[i]) > upper & upper < 1) {
       y[i] = paste(">", substring(as.character(upper), s), sep = " ")
       z[i] = substring(as.character(upper), s)
-
+      
+    } else if(abs(x[i]) > upper & upper >= 1) {
+      y[i] = paste(">", substring(as.character(upper), 1), sep = " ")
+      z[i] = substring(as.character(upper), 1)
+      
     } else {
       y[i] = paste("=", substring(as.character(signif(x[i], sig)), s), sep = " ")
       z[i] = substring(as.character(signif(x[i], sig)), s)
     }
   }
-
+  
   if (return.num == FALSE & equal.sign == TRUE) {
     return(y)
-
+    
   } else if(equal.sign == FALSE) {
     for(j in seq_along(y)) {
       if(substring(y[j], 1, 1) == "=") {
@@ -79,7 +85,7 @@ cutoff = function(x, upper = 1, lower = 0.001, sig = 2, return.num = FALSE,
       }
     }
     return(y)
-
+    
   } else if(return.num == TRUE) {
     return(z)
   }
